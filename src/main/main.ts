@@ -15,7 +15,7 @@ function createWindow() {
   const window = new BrowserWindow({ width: 1440, height: 940, minWidth: 1080, minHeight: 720, backgroundColor: '#09111f', webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false } });
   const devUrl = process.env.ELECTRON_DEV_URL;
   if (devUrl) window.loadURL(devUrl);
-  else window.loadFile(path.join(__dirname, '../dist-renderer/index.html'));
+  else window.loadFile(path.join(__dirname, '../../dist-renderer/index.html'));
   window.webContents.setWindowOpenHandler(({ url }) => { if (/^https:\/\//i.test(url)) shell.openExternal(url); return { action: 'deny' }; });
 }
 

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Agente desktop local-first para pesquisa e inteligência de viagens.",
-  "main": "dist-electron/main.js",
+  "main": "dist-electron/main/main.js",
   "scripts": {
     "dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && cross-env ELECTRON_DEV_URL=http://127.0.0.1:5173 electron .\"",
     "build": "vite build && tsc -p tsconfig.main.json",
