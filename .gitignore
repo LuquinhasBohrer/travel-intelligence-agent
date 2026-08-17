@@ -1,0 +1,12 @@
+node_modules/
+dist-electron/
+dist-renderer/
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+.DS_Store
+Thumbs.db
+.vscode/
