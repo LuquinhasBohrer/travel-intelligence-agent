@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'node:path';
+import dotenv from 'dotenv';
 import { TravelDatabase } from './database/database';
 import { ProviderRegistry } from './providers/registry';
 import { AgentOrchestrator } from './services/orchestrator';
@@ -19,6 +20,7 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  dotenv.config({ path: path.join(app.getAppPath(), '.env') });
   database = await TravelDatabase.open(app.getPath('userData'));
   providers = new ProviderRegistry();
   orchestrator = new AgentOrchestrator(database, providers);

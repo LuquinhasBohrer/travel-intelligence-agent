@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
+    "dotenv": "latest",
     "electron": "latest",
     "react": "latest",
     "react-dom": "latest",
