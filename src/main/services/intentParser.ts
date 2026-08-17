@@ -39,14 +39,38 @@ function parseDuration(text: string): number | null {
   return match ? Number(match[1]) : null;
 }
 
-function parseDateHint(text: string): string | null {
+function toIsoDate(day: number, month: number, year: number): string | null {
+  if (year < 2020 || month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function parseExactDate(text: string): string | null {
+  const numeric = text.match(/\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})\b/);
+  if (numeric) return toIsoDate(Number(numeric[1]), Number(numeric[2]), Number(numeric[3]));
+  const named = text.match(/\b(\d{1,2})\s+de\s+([a-zçãõ]+)(?:\s+de)?\s+(\d{4})\b/i);
+  if (named) {
+    const month = monthNames[normalize(named[2])];
+    return month ? toIsoDate(Number(named[1]), month, Number(named[3])) : null;
+  }
+  return null;
+}
+
+function parseDateHint(text: string, exactDate: string | null): string | null {
+  if (exactDate) return exactDate;
   const normalized = normalize(text);
   for (const [month, monthNumber] of Object.entries(monthNames)) {
-    if (normalized.includes(month)) return `${monthNumber.toString().padStart(2, '0')}`;
+    if (normalized.includes(month)) return String(monthNumber).padStart(2, '0');
   }
-  const date = text.match(/\b(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{4}))?\b/);
-  if (date) return `${date[3] ?? 'ano-nao-informado'}-${date[2].padStart(2, '0')}-${date[1].padStart(2, '0')}`;
   return null;
+}
+
+function parseReturnDate(text: string): string | null {
+  const returnText = text.match(/(?:volta|retorno|retornar|voltar)[^\d]{0,20}(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i);
+  if (!returnText) return null;
+  const match = returnText[1].match(/(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+  return match ? toIsoDate(Number(match[1]), Number(match[2]), Number(match[3])) : null;
 }
 
 function parseRoute(text: string): { origin: string | null; destination: string | null } {
@@ -58,7 +82,9 @@ function parseRoute(text: string): { origin: string | null; destination: string 
 export function parseIntent(rawRequest: string): ParsedIntent {
   const text = rawRequest.trim();
   const route = parseRoute(text);
-  const dateHint = parseDateHint(text);
+  const departureDate = parseExactDate(text);
+  const returnDate = parseReturnDate(text);
+  const dateHint = parseDateHint(text, departureDate);
   const normalized = normalize(text);
   const budgetMatch = text.match(/(?:menos de|abaixo de|at[eé]\s+no\s+m[aá]ximo\s+de|or[cç]amento\s+de)\s+(?:r\$\s*)?[\d.,]+\s*(?:mil|k)?/i);
   const maxStopsMatch = text.match(/(?:no m[aá]ximo|at[eé])\s+(\d+)\s+escalas?/i);
@@ -67,14 +93,15 @@ export function parseIntent(rawRequest: string): ParsedIntent {
   if (!route.origin) missingFields.push('origem');
   if (!route.destination) missingFields.push('destino');
   if (!dateHint) missingFields.push('período ou data');
+  else if (!departureDate) missingFields.push('data completa para pesquisar');
 
   const confidence: ParsedIntent['confidence'] = missingFields.length === 0 ? 'alta' : missingFields.length === 1 ? 'média' : 'baixa';
   return {
     rawRequest: text,
     origin: route.origin,
     destination: route.destination,
-    departureDate: null,
-    returnDate: null,
+    departureDate,
+    returnDate,
     dateHint,
     durationDays: parseDuration(text),
     travelers: parseTravelers(text),

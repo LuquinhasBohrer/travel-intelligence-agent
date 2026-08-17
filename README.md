@@ -26,6 +26,17 @@ npm run build
 npm start
 ```
 
+Em versões recentes do npm que bloqueiam scripts de instalação, autorize o pacote Electron e baixe o binário uma única vez:
+
+```bash
+npm approve-scripts electron
+npm exec -- install-electron
+```
+
+Se o npm informar que o binário não foi instalado corretamente, execute esses dois comandos novamente dentro da pasta do projeto antes de `npm start`.
+
+A pesquisa de ofertas reais exige uma **data completa**, como `15/12/2026`. Um mês isolado, como “dezembro”, pode ser salvo como intenção, mas não é convertido em uma data arbitrária.
+
 Para validação:
 
 ```bash
